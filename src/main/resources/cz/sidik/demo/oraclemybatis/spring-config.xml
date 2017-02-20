@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+       http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <!-- Spring: activate @Autowired and @Required and other annotations -->
+    <context:annotation-config/>
+    <context:component-scan base-package="cz.sidik.demo.oraclemybatis"/>
+
+    <!-- Spring: use property file for placeholders -->
+    <context:property-placeholder location="classpath*:cz/sidik/demo/oraclemybatis/jdbc.properties"/>
+
+    <!-- Spring: transaction manager -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- Spring: transactions by annotations -->
+    <tx:annotation-driven/>
+
+    <!-- MyBatis Config -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mapperLocations" value="classpath*:cz/sidik/demo/oraclemybatis/mapper/*.xml"/>
+
+        <!-- Example of executor handler -->
+        <property name="plugins">
+            <list>
+                <bean class="cz.sidik.demo.oraclemybatis.interceptor.ExecutorHandlerPlugin"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Automatic creation of mappers -->
+    <mybatis:scan base-package="cz.sidik.demo.oraclemybatis" factory-ref="sqlSessionFactory"
+                  annotation="cz.sidik.demo.oraclemybatis.mapper.MyBatisMapper"/>
+
+    <!--
+        Oracle DB datasource, Install Oracle XE on localhost with default Service name XE
+        and with sample schema HR and password 'hr' (or change url/credentials in jdbc.properties)
+        For JDBC driver download from Maven repository see comments in pom.xml -->
+    <bean id="dataSource" class="oracle.jdbc.pool.OracleDataSource">
+        <property name="dataSourceName" value="ds"/>
+        <property name="URL" value="${dataSource.URL}"/>
+        <property name="user" value="${dataSource.user}"/>
+        <property name="password" value="${dataSource.password}"/>
+    </bean>
+
+    <!-- Init DB code in the target schema -->
+    <jdbc:initialize-database data-source="dataSource">
+        <jdbc:script execution="INIT" separator="///"
+                     location="classpath*:cz/sidik/demo/oraclemybatis/oracle_init_script.sql"/>
+        <jdbc:script execution="DESTROY" location="classpath*:cz/sidik/demo/oraclemybatis/oracle_destroy_script.sql"/>
+    </jdbc:initialize-database>
+
+</beans>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cz.sidik.demo.oraclemybatis.mapper.UserDataObjectsMapper">
+
+    <update id="insertEmployees" statementType="CALLABLE">
+        {CALL insert_employees(
+                #{employees, jdbcType=ARRAY, mode=IN, typeHandler=cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler},
+                #{departmentId, jdbcType=NUMERIC, mode=IN})}
+    </update>
+
+    <update id="insertEmployeesDao" statementType="CALLABLE">
+        {CALL insert_employees(
+                #{query.employees, jdbcType=ARRAY, mode=IN, typeHandler=cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler},
+                #{query.departmentId, jdbcType=NUMERIC, mode=IN})}
+    </update>
+
+    <select id="getEmployees" statementType="CALLABLE">
+        {CALL #{outParams.resultSet, jdbcType=ARRAY, mode=OUT, jdbcTypeName=EMPLOYEE_ARRAYTYPE, typeHandler=cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler}
+        := get_employees_array(#{departmentId, jdbcType=NUMERIC, mode=IN})}
+    </select>
+
+    <select id="getEmployeesDao" statementType="CALLABLE">
+        {CALL #{query.employees, jdbcType=ARRAY, mode=OUT, jdbcTypeName=EMPLOYEE_ARRAYTYPE, typeHandler=cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler}
+        := get_employees_array(#{query.departmentId, jdbcType=NUMERIC, mode=IN})}
+    </select>
+
+    <select id="getEmployeesOut" statementType="CALLABLE">
+        {CALL get_employees_array_out(#{departmentId, jdbcType=NUMERIC, mode=IN},
+                                      #{outParams.resultSet, jdbcType=ARRAY, mode=OUT, jdbcTypeName=EMPLOYEE_ARRAYTYPE, typeHandler=cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler})}
+    </select>
+
+    <select id="getEmployeesDaoOut" statementType="CALLABLE">
+        {CALL get_employees_array_out(#{query.departmentId, jdbcType=NUMERIC, mode=IN},
+                                      #{query.employees, jdbcType=ARRAY, mode=OUT, jdbcTypeName=EMPLOYEE_ARRAYTYPE, typeHandler=cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler})}
+    </select>
+
+
+    <select id="getEmployeesArray" resultMap="getEmployeesArrayResultSet">
+        SELECT get_employees_array(#{departmentId, jdbcType=NUMERIC, mode=IN}) AS ARRAY_TYPE
+        FROM dual
+    </select>
+
+    <resultMap id="getEmployeesArrayResultSet" type="cz.sidik.demo.oraclemybatis.bo.GetEmployeesDao">
+        <result property="employees" column="ARRAY_TYPE"
+                typeHandler="cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler"/>
+    </resultMap>
+
+    <select id="getEmployeesRows" resultMap="getEmployeesRowsResultSet">
+        SELECT *
+        FROM TABLE (get_employees_array(#{departmentId, jdbcType=NUMERIC, mode=IN}))
+    </select>
+
+    <resultMap id="getEmployeesRowsResultSet" type="cz.sidik.demo.oraclemybatis.bo.EmployeeDao">
+        <result property="employeeId" column="employee_id"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+    </resultMap>
+
+    <select id="getEmployeesPipedRows" resultMap="getEmployeesRowsResultSet">
+        SELECT *
+        FROM TABLE (pipe_employees_cursor(get_employees(#{departmentId, jdbcType=NUMERIC, mode=IN})))
+    </select>
+
+</mapper>

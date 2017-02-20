@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cz.sidik.demo.oraclemybatis.mapper.OutputParamMapper">
+
+    <update id="setEmployeeName" statementType="CALLABLE">
+        {CALL #{outParams.oldName, jdbcType=VARCHAR, mode=OUT, javaType=java.lang.String}
+        := set_employee_name(#{employeeId, jdbcType=NUMERIC, mode=IN},
+                             #{firstName, jdbcType=VARCHAR, mode=IN},
+                             #{lastName, jdbcType=VARCHAR, mode=IN})}
+    </update>
+
+    <update id="setEmployeeNameDao" statementType="CALLABLE">
+        {CALL #{employee.oldName, jdbcType=VARCHAR, mode=OUT, javaType=java.lang.String}
+        := set_employee_name(#{employee.employeeId, jdbcType=NUMERIC, mode=IN},
+                             #{employee.firstName, jdbcType=VARCHAR, mode=IN},
+                             #{employee.lastName, jdbcType=VARCHAR, mode=IN})}
+    </update>
+
+    <update id="setEmployeeNameOut" statementType="CALLABLE">
+        {CALL set_employee_name_out(#{employeeId, jdbcType=NUMERIC, mode=IN},
+                                    #{firstName, jdbcType=VARCHAR, mode=IN},
+                                    #{lastName, jdbcType=VARCHAR, mode=IN},
+                                    #{outParams.oldName, jdbcType=VARCHAR, mode=OUT, javaType=java.lang.String})}
+    </update>
+
+    <update id="setEmployeeNameDaoOut" statementType="CALLABLE">
+        {CALL set_employee_name_out(#{employee.employeeId, jdbcType=NUMERIC, mode=IN},
+                                    #{employee.firstName, jdbcType=VARCHAR, mode=IN},
+                                    #{employee.lastName, jdbcType=VARCHAR, mode=IN},
+                                    #{employee.oldName, jdbcType=VARCHAR, mode=OUT, javaType=java.lang.String})}
+    </update>
+
+    <select id="getEmployeeName" resultType="String">
+        SELECT get_employee_name(#{employeeId, jdbcType=NUMERIC, mode=IN})
+        FROM dual
+    </select>
+
+</mapper>

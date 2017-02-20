@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cz.sidik.demo.oraclemybatis.mapper.CursorMapper">
+
+    <select id="getEmployees" statementType="CALLABLE">
+        {CALL #{outParams.resultSet, jdbcType=CURSOR, mode=OUT, javaType=java.sql.ResultSet, resultMap=getEmployeesResultSet}
+        := get_employees(#{departmentId})}
+    </select>
+
+    <select id="getEmployeesDao" statementType="CALLABLE">
+        {CALL #{getClientsQuery.employees, jdbcType=CURSOR, mode=OUT, javaType=java.sql.ResultSet, resultMap=getEmployeesResultSet}
+        := get_employees(#{getClientsQuery.departmentId, jdbcType=NUMERIC, mode=IN})}
+    </select>
+
+    <select id="getEmployeesOut" statementType="CALLABLE">
+        {CALL get_employees_out(#{departmentId, jdbcType=NUMERIC, mode=IN},
+                                #{outParams.resultSet, jdbcType=CURSOR, mode=OUT, javaType=java.sql.ResultSet, resultMap=getEmployeesResultSet})}
+    </select>
+
+    <select id="getEmployeesDaoOut" statementType="CALLABLE">
+        {CALL get_employees_out(#{getClientsQuery.departmentId, jdbcType=NUMERIC, mode=IN},
+                                #{getClientsQuery.employees, jdbcType=CURSOR, mode=OUT, javaType=java.sql.ResultSet, resultMap=getEmployeesResultSet})}
+    </select>
+
+    <resultMap id="getEmployeesResultSet" type="cz.sidik.demo.oraclemybatis.bo.EmployeeDao">
+        <result property="employeeId" column="EMPLOYEE_ID"/>
+        <result property="firstName" column="FIRST_NAME"/>
+        <result property="lastName" column="LAST_NAME"/>
+    </resultMap>
+
+    <select id="getEmployeesCursor" resultMap="getEmployeesCursorResultSet">
+        SELECT get_employees(#{departmentId, jdbcType=NUMERIC, mode=IN}) AS RESULT_SET
+        FROM dual
+    </select>
+
+    <resultMap id="getEmployeesCursorResultSet" type="cz.sidik.demo.oraclemybatis.bo.GetEmployeesDao">
+        <result property="employees" column="RESULT_SET"
+                typeHandler="cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoCursorTypeHandler"/>
+    </resultMap>
+
+</mapper>
