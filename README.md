@@ -29,8 +29,7 @@ scaffolding of new project (= copy-pasting). JUnit and Slf4j is present too.
 Tests use table structure and data set from standard HR demonstration schema, which is an optional part of Oracle DB 
 installation. There are installed some demonstration procedures, functions and data types during test preparation, but 
 all added parts are removed after the test finish (see scripts `src/main/resources/cz/sidik/demo/oraclemybatis/oracle_init_script.sql` and 
-`src/main/resources/cz/sidik/demo/oraclemybatis/oracle_destroy_script.sql` and their usage in spring context definition 
-- tag `jdbc:initialize-database`). 
+`src/main/resources/cz/sidik/demo/oraclemybatis/oracle_destroy_script.sql` and their usage in spring context definition - tag `jdbc:initialize-database`). 
 
 All tests run in transaction mode, which will rollback data changes from every
 test (see [AbstractTransactionalJUnit4SpringContextTests](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/test/context/junit4/AbstractTransactionalJUnit4SpringContextTests.html))
@@ -199,7 +198,7 @@ MyBatis mapping, same rules may be used in this case.
 
 ### How to return a cursor as a result of Java method (Vol. 1)
 
-In case of DB function returning cursor, can be used the same trick as in [previous chapeter](#How-to-return-a-function-result-as-a-result-of-Java-method-in-MyBatis-mapper)
+In case of DB function returning cursor, can be used the same trick as in [previous chapeter](#how-to-return-a-function-result-as-a-result-of-java-method-in-mybatis-mapper)
 with the same limitations. A little confusing is that result set is not a content cursor, but result set contains a 
 single-column single-row result set, which contains one `CURSOR` value with data. And MyBatis does not support easy
 way, how to write mapping for this CURSOR in `SELECT` result set (there is no alternative for `resultMap` parameter
@@ -269,7 +268,7 @@ Btw. this code is specific for Oracle JDBC driver and works with `oracle.jdbc.Or
 
 Oracle DB has a feature of user defined data types - record (= `OBJECT`) and array (= `TABLE OF`). The definition is easy:
 
-```oraclesqlplus
+```sql
 CREATE OR REPLACE TYPE employee_structtype FORCE AS OBJECT (
   employee_id NUMBER(6),
   first_name  VARCHAR2(20),
@@ -404,7 +403,7 @@ public interface UserDataObjectsMapper {
 </select>
 ```
 
-```oraclesqlplus
+```sql
 CREATE OR REPLACE FUNCTION pipe_employees_cursor(p_employees_cursor SYS_REFCURSOR)
   RETURN employee_arraytype PIPELINED IS
   l_employee_record employees%ROWTYPE;
