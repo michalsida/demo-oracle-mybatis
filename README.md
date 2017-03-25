@@ -1,4 +1,4 @@
-# Extended mapping to Oracle database with help of MyBatis 
+# Extended MyBatis mapping with Oracle database
 
 This is a sample project with demonstration of some unusual features of combination MyBatis and Oracle DB. 
 List of demonstrated features:
@@ -12,7 +12,7 @@ List of demonstrated features:
 * Installed Maven tool with access to public repositories
 * Installed Oracle database with installed demo HR schema. Connection URL and credentials are defined in 
 `src/main/resources/cz/sidik/demo/oraclemybatis/jdbc.properties`, you can modify them to fit your settings
-* Solved dependency for Oracle JDBC drivers, there is two ways, see links in comments near Oracle JDBC dependency in `pom.xml` 
+* Solved Maven dependency to Oracle JDBC drivers, there is two ways, see links in comments near Oracle JDBC dependency in `pom.xml` 
  
 ## Usage
 
@@ -20,13 +20,13 @@ Just simple run `mvn clean test` in root of downloaded project.
 
 ## Used frameworks
 
-There is used MyBatis of course :-) And Spring framework, but it is there only for basic application and MyBatis configuration 
+There is used MyBatis of course :-) And Spring framework, but it is used only for basic application and MyBatis configuration 
 (data source, transactions, properties, database init). And IMHO for better readability and easier 
 scaffolding of new project (= copy-pasting). JUnit and Slf4j is present too.
  
 ## HR schema
 
-Tests use table structure and data set from standard HR demonstration schema, which is an optional part of Oracle DB 
+Tests use table structures and data sets from standard HR demonstration schema, which is an optional part of Oracle DB 
 installation. There are installed some demonstration procedures, functions and data types during test preparation, but 
 all added parts are removed after the test finish (see scripts `src/main/resources/cz/sidik/demo/oraclemybatis/oracle_init_script.sql` and 
 `src/main/resources/cz/sidik/demo/oraclemybatis/oracle_destroy_script.sql` and their usage in spring context definition - tag `jdbc:initialize-database`). 
@@ -36,14 +36,14 @@ test (see [AbstractTransactionalJUnit4SpringContextTests](http://docs.spring.io/
 
 ## Mapping of output parameters in DB procedures and functions
 
-This section demonstrates, how output parameters/function return values can be mapped to Java data structures.
+This section demonstrates, how output parameters and function return values can be mapped to Java data structures.
 
 ### How to call a simple DB procedure with output parameter
 
-Java does not support output parameters on methods directly, so output parameters must be returned in some container types.
-One possibility is return value inside some collection, which is initialized by the caller code. As an useful container
+Java does not support output parameters in methods directly, so output parameters must be returned in some container types.
+One possibility is return a value inside some collection, which is initialized by the caller code. As an useful container
 can be used `Map<String, Object>` interface. It can be used for returning of all output parameters in the procedure.
-There is one disadvantage, returned parameters must be mapped to some "keys" - hard coded string constants and this binding
+There is one disadvantage, returned parameters must be mapped under some "keys" - hard coded string constants and this binding
 is not clear on the first sight. Demonstration from `cz.sidik.demo.oraclemybatis.mapper.OutputParamMapper.setEmployeeNameOut`:
 
 ```java
@@ -67,14 +67,14 @@ public interface OutputParamMapper {
 The method is called from `cz.sidik.demo.oraclemybatis.OutputParamTest.testSetEmployeeNameOut`.
 
 I personally prefer a syntax with inline parameter declaration with use of `@Param` annotation and I will use it in all examples.
-Be careful, that `jdbcType` and `mode` is declared for all parameters and the output one has a declaration of `javaType` too.
+Be careful that `jdbcType` and `mode` is declared for all parameters and the output one has a declaration of `javaType` too.
 
 
 ### Mapping of output parameter back into DAO object
 
 The other possibility is use some Plain Old Java Object with JavaBeans property-style methods, which is supported in MyBatis.
-In this case can be output parameters stored directly inside some DAO class. E.g. calling of `INSERT` procedure can fill up
-generated record Primary Key directly inside structured DAO object. See: 
+In this case can be output parameters stored directly into some DAO class. E.g. calling of `INSERT` procedure can fill up
+generated record Primary Key field directly inside the structured DAO object. See: 
 `cz.sidik.demo.oraclemybatis.mapper.OutputParamMapper.setEmployeeNameDaoOut`
 
 ```java
@@ -127,7 +127,7 @@ with value passing by POJO can be used too (demonstrated in `cz.sidik.demo.oracl
 The PL/SQL function return value can not be generally passed as return value of MyBatis Java function. But there is one exception.
 In case, that Oracle function [can be called in SQL SELECT command](http://www.toadworld.com/platforms/oracle/w/wiki/1958.function-calling-a-function-inside-sql), 
 it is possible to use a trick, where the return value
-is passed as a single-column single-row result set and MyBatis maps result set as result value of mapping function. 
+is passed as a single-column single-row result set and MyBatis maps this result set - single value as result value of mapping function. 
 See a demonstration in `cz.sidik.demo.oraclemybatis.mapper.OutputParamMapper.getEmployeeName`
 
 ```java
@@ -148,12 +148,12 @@ It is not `CALLABLE` statement, but it is standard `PREPARED` `statementType`. U
 
 ## Mapping of returned cursor
 
-Oracle DB supports a generic data type `SYS_REFCURSOR`, which represents a result set type and can be passed between PL/SQL
+Oracle DB supports a generic data type `SYS_REFCURSOR`, which represents a generic result set type and can be passed between PL/SQL
 procedures/functions. MyBatis supports a mapping of this DB collection type as an output parameter or return value.
 It can be mapped to Java `Collection` of something easily.
 
 All four variants of mapping can be used similarly as in previous cases (Map x POJO, procedure x function), so only one 
-variant will be described in this documentation and the other variants will be present only in code. Variant for function 
+variant will be described in this documentation and the other variants can be explored in code only. The variant for function 
 and POJO is in `cz.sidik.demo.oraclemybatis.mapper.CursorMapper.getEmployeesDao`:
 
 ```java
@@ -190,7 +190,7 @@ mapping between cursor result-set columns and properties of the target POJO type
 Be careful that column aliases must exactly match with the ones from the DB cursor (see `cz/sidik/demo/oraclemybatis/oracle_init_script.sql:58`).
 
 Be aware that all data are processed in one chunk. JDBC fetches all records from Oracle DB to JVM, after that MyBatis
-do a mapping transformation with help `resultMap` definition and after processing of all records in cursor 
+do a mapping transformation with help of `resultMap` definition and after processing of all records in cursor 
 the result will be returned back into calling Java code after all.
 
 `SYS_REFCURSOR` can be declared with help of some record type, so it has strongly typed structure, but this is irrelevant for
@@ -198,11 +198,11 @@ MyBatis mapping, same rules may be used in this case.
 
 ### How to return a cursor as a result of Java method (Vol. 1)
 
-In case of DB function returning cursor, can be used the same trick as in [previous chapeter](#how-to-return-a-function-result-as-a-result-of-java-method-in-mybatis-mapper)
+In case of DB function returning a cursor, it can be used the same trick as in [previous chapeter](#how-to-return-a-function-result-as-a-result-of-java-method-in-mybatis-mapper)
 with the same limitations. A little confusing is that result set is not a content cursor, but result set contains a 
 single-column single-row result set, which contains one `CURSOR` value with data. And MyBatis does not support easy
 way, how to write mapping for this CURSOR in `SELECT` result set (there is no alternative for `resultMap` parameter
-in inline parameter statement). But it is possible to write custom mapping handler between DB cursor type and 
+from inline parameter statement). But it is possible to write custom mapping handler between DB cursor type and 
 Java collection of target POJOs. See at `cz.sidik.demo.oraclemybatis.mapper.CursorMapper.getEmployeesCursor`:
 
 ```java
@@ -256,7 +256,7 @@ public interface CursorMapper {
 </select>
 ```
 
-There is simple MyBatis type handler between Oracle cursor type and collection of target POJOs and the rest is straightforward. 
+There is a simple MyBatis type handler between Oracle cursor type and collection of target POJOs and the rest is straightforward. 
 
 At first sight it looks great, but this solution does not solve a problem, that all data/items/records of cursor are processed
 in one chunk, even the `SELECT` clause is used. This setup **does not fetch** cursor records one by one. But there 
@@ -280,7 +280,7 @@ CREATE OR REPLACE TYPE employee_arraytype FORCE AS TABLE OF employee_structtype;
 
 These types can be combined with each other, so collection of records with collection of records is possible.
 
-MyBatis supports mapping fo these types into Java POJO classes, but this can not be done with some configuration, some
+MyBatis supports mapping fo these types into Java POJO classes, but this can not be done by some configuration only, some
 specialized type mapper must be written. There is a sample code, which supports these demonstrated types, but this code 
 could be easily customized for any record/collection type. The code is commented in 
 `cz.sidik.demo.oraclemybatis.adapter.EmployeeDaoTypeHandler` and will be used in following mappings.
@@ -321,7 +321,7 @@ public interface UserDataObjectsMapper {
 </select>
 ```
 
-There is one unusual thing. In case of output parameters must be present `jdbcTypeName` parameter in MyBatis paramter inline
+There is one unusual thing. In case of output parameters must be present `jdbcTypeName` parameter in MyBatis parameter inline
 definition with the name of according user DB type (see DDL statement for this type).
 
 ### How to return a cursor as a result of Java method (Vol. 2)
@@ -378,7 +378,7 @@ public interface UserDataObjectsMapper {
 </select>
 ```
  
-So there is DB function returning array of records, array is selected just any other DB table and result set is mapped
+So there is DB function returning array of records, array is selected like just any other DB table and result set is mapped
 to Java as any other MyBatis result set mapping. 
 
 Supports this approach fetching rows by rows? MyBatis/JDBC cooperation supports step by step fetching now - just like
@@ -421,11 +421,11 @@ CREATE OR REPLACE FUNCTION pipe_employees_cursor(p_employees_cursor SYS_REFCURSO
 ```
 
 The main difference is in called DB function `pipe_employees_cursor`. It does not return array or cursor, but it has 
-a special syntax, which "PIPES" rows one by one. In this example it is only a wrapper between opened cursor, which fetchs a 
+a special syntax, which "PIPES" rows one by one. In this example it is only a wrapper between opened cursor, which fetches a 
 single record and pass it to SQL code one by one. So partially fetching works from PL/SQL `SELECT` cursor over SQL `SELECT`
 statement over JDBC into MyBatis.
 
-There is last limitation, MyBatis does not support some lazy fetch from statement. It convert all returned rows into Java
+There is a last limitation, MyBatis does not support result set continuous fetching. It fetches **ALL** returned rows and convert them into Java
 objects after all. This last demonstration is only for illustrating of Oracle DB possibilities, which can be effectively 
 used only with direct JDBC communication now. Or may be in some future MyBatis releases. 
 
