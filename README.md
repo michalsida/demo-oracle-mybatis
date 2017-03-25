@@ -431,4 +431,4 @@ used only with direct JDBC communication now. Or may be in some future MyBatis r
 
 ## Conclusion
 
-And that is all I know about mapping between Oracle DB procedures and function with help of MyBatis :-)
+And that is all I know about mapping between Java and Oracle DB procedures and function with help of MyBatis :-)
