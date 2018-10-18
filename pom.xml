@@ -9,7 +9,7 @@
     <name>Samples of special mapping between MyBatis and Oracle DB</name>
 
     <properties>
-        <spring.version>4.3.2.RELEASE</spring.version>
+        <spring.version>[4.3.18,)</spring.version>
     </properties>
 
     <dependencies>
